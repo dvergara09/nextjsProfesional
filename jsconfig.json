@@ -8,7 +8,7 @@
       "@pages/*": ["/pages/*"],
       "@layout/*": ["/layout/*"],
       "@services/*": ["/services/*"],
-      "@hooks": ["/hooks/*"]
+      "@hooks/*": ["/hooks/*"]
     }
   }
 }
