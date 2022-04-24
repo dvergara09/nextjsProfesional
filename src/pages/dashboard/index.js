@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import useFetch from '@hooks/useFetch';
 import endpoints from '@services/api';
+
+import { Chart } from '@common/Chart';
+
 const LIMIT = 5;
 const OFFSET = 5;
 
@@ -27,8 +30,25 @@ export default function Dashboard() {
     setProductOffset((Number(current) - 1) * PRODUCT_LIMIT);
   };
 
+  const categoryName = products?.map((product) => product.category);
+  const categoryCount = categoryName?.map((category) => category.name);
+
+  const countOCurrences = (arr) => arr.reduce((prev, curr) => ((prev[curr] = ++prev[curr] || 1), prev), {});
+
+  const data = {
+    datasets: [
+      {
+        label: 'Categories',
+        data: countOCurrences(categoryCount),
+        borderWidth: 2,
+        backgroundColor: ['#ffbb11', '#c0c0c0', '#50AF95', '#f3ba2f', '#2a71d0'],
+      },
+    ],
+  };
+
   return (
     <>
+      <Chart className="mb-8 mt-2" chartData={data} />
       <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
