@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import useFetch from '@hooks/useFetch';
 import endPoints from '@services/api/';
-
+import Pagination from '@components/Pagination';
 const LIMIT = 5;
 const OFFSET = 5;
 
 export default function Dashboard() {
-  const products = useFetch(endPoints.products.getProducts(LIMIT, OFFSET));
-  console.log(products);
+  const [offsetProducts, setOffsetProducts] = useState(0);
+  const totalProducts = useFetch(endPoints.products.getProducts(0, 0)).length;
+  const products = useFetch(endPoints.products.getProducts(LIMIT, offsetProducts));
   return (
     <>
       <div className="flex flex-col">
@@ -71,6 +73,7 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+            {totalProducts > 0 && <Pagination totalItems={totalProducts} itemsPerPage={LIMIT} setOffset={setOffsetProducts} nums={3} />}
           </div>
         </div>
       </div>
