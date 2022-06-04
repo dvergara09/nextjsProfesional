@@ -12,9 +12,10 @@ const FormProduct = () => {
       categoryId: parseInt(formData.get('category')),
       images: [formData.get('images').name],
     };
+    console.log(data);
   };
   return (
-    <form>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <div className="overflow-hidden">
         <div className="px-4 py-5 bg-white sm:p-6">
           <div className="grid grid-cols-6 gap-6">
