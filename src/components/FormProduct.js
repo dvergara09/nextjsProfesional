@@ -1,7 +1,9 @@
 import { useRef } from 'react';
 import { addProduct } from '@services/api/products';
-const FormProduct = () => {
+
+const FormProduct = ({ setOpen, setAlert }) => {
   const formRef = useRef(null);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(formRef.current);
@@ -12,10 +14,27 @@ const FormProduct = () => {
       categoryId: parseInt(formData.get('category')),
       images: [formData.get('images').name],
     };
-    addProduct(data).then((response) => {
-      console.log(response);
-    });
+
+    addProduct(data)
+      .then(() => {
+        setAlert({
+          active: true,
+          message: 'Product added successfully',
+          type: 'success',
+          autoClose: false,
+        });
+        setOpen(false);
+      })
+      .catch((error) => {
+        setAlert({
+          active: true,
+          message: error.message,
+          type: 'error',
+          autoClose: false,
+        });
+      });
   };
+
   return (
     <form ref={formRef} onSubmit={handleSubmit}>
       <div className="overflow-hidden">

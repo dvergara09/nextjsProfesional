@@ -1,23 +1,48 @@
 import { useState, useEffect } from 'react';
-import { CheckIcon } from '@heroicons/react/solid';
+import { CheckIcon, XCircleIcon } from '@heroicons/react/solid';
 import Modal from '@common/Modal';
 import FormProduct from '@components/FormProduct';
-import useFetch from '@hooks/useFetch';
 import endPoints from '@services/api/';
-import Pagination from '@components/Pagination';
+/* import Pagination from '@components/Pagination';
+import useFetch from '@hooks/useFetch';*/
 import useAlert from '@hooks/useAlert';
 import Alert from '@common/Alert';
-
+import axios from 'axios';
+import { deleteProduct } from '@services/api/products';
 const LIMIT = 20;
 
 const Products = () => {
-  const [offsetProducts, setOffsetProducts] = useState(0);
-
-  const products = useFetch(endPoints.products.getProducts(LIMIT, offsetProducts), offsetProducts);
-  const totalProducts = useFetch(endPoints.products.getProducts(0, 0)).length;
+  /*  const [offsetProducts, setOffsetProducts] = useState(0); */
+  /* const products = useFetch(endPoints.products.getProducts(LIMIT, offsetProducts), offsetProducts);
+  const totalProducts = useFetch(endPoints.products.getProducts(0, 0)).length; */
   const [open, setOpen] = useState(false);
 
+  const [products, setProducts] = useState([]);
   const { alert, setAlert, toggleAlert } = useAlert();
+
+  useEffect(() => {
+    async function getProductsPagination() {
+      const response = await axios.get(endPoints.products.getAllProducts);
+      setProducts(response.data);
+    }
+
+    try {
+      getProductsPagination();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [alert]);
+
+  const handleClose = (id) => {
+    deleteProduct(id).then(() => {
+      setAlert({
+        active: true,
+        message: 'Delete',
+        type: 'error',
+        autoClose: true,
+      });
+    });
+  };
 
   return (
     <>
@@ -92,16 +117,15 @@ const Products = () => {
                         </a>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                          Delete
-                        </a>
+                        <XCircleIcon className="flex-shrink-0 h-6 w-6 text-gray-400 cursor-pointer" aria-hidden="true" onClick={() => handleClose(product.id)} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {totalProducts > 0 && <Pagination totalItems={totalProducts} itemsPerPage={LIMIT} setOffset={setOffsetProducts} neighbours={3}></Pagination>}
+            {/*{totalProducts > 0 && <Pagination totalItems={totalProducts} itemsPerPage={LIMIT} setOffset={setOffsetProducts} neighbours={3}></Pagination>}
+             */}
           </div>
         </div>
       </div>
