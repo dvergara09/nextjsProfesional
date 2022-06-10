@@ -1,13 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckIcon } from '@heroicons/react/solid';
 import Modal from '@common/Modal';
 import FormProduct from '@components/FormProduct';
+import useFetch from '@hooks/useFetch';
+import endPoints from '@services/api/';
+import Pagination from '@components/Pagination';
+import useAlert from '@hooks/useAlert';
+import Alert from '@common/Alert';
+
+const LIMIT = 20;
+
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const [offsetProducts, setOffsetProducts] = useState(0);
+
+  const products = useFetch(endPoints.products.getProducts(LIMIT, offsetProducts), offsetProducts);
+  const totalProducts = useFetch(endPoints.products.getProducts(0, 0)).length;
   const [open, setOpen] = useState(false);
+
+  const { alert, setAlert, toggleAlert } = useAlert();
 
   return (
     <>
+      <Alert alert={alert} handleClose={toggleAlert} />
       <div className="lg:flex lg:items-center lg:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">List of products</h2>
@@ -25,7 +39,7 @@ const Products = () => {
           </span>
         </div>
       </div>
-      {/* <div className="flex flex-col">
+      <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
             <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
@@ -90,9 +104,9 @@ const Products = () => {
             {totalProducts > 0 && <Pagination totalItems={totalProducts} itemsPerPage={LIMIT} setOffset={setOffsetProducts} neighbours={3}></Pagination>}
           </div>
         </div>
-      </div> */}
+      </div>
       <Modal open={open} setOpen={setOpen}>
-        <FormProduct />
+        <FormProduct setOpen={setOpen} setAlert={setAlert} />
       </Modal>
     </>
   );
