@@ -1,44 +1,54 @@
-import { Fragment } from 'react';
-
-import { useState } from 'react';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/react/solid';
-
-import { usePagination } from '@hooks/usePagination';
-import useFetch from '@hooks/useFetch';
-import endpoints from '@services/api';
-import Paginator from '@components/Pagination';
+import { useState, useEffect } from 'react';
+import { CheckIcon, XCircleIcon } from '@heroicons/react/solid';
+import Link from 'next/link';
 import Modal from '@common/Modal';
+import FormProduct from '@components/FormProduct';
+import endPoints from '@services/api/';
+/* import Pagination from '@components/Pagination';
+import useFetch from '@hooks/useFetch';*/
+import useAlert from '@hooks/useAlert';
+import Alert from '@common/Alert';
+import axios from 'axios';
+import { deleteProduct } from '@services/api/products';
+const LIMIT = 20;
 
-const LIMIT = 5;
-const OFFSET = 5;
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
-
-export default function Products() {
-  const [productOffset, setProductOffset] = useState(1);
-  const totalItems = useFetch(endpoints.products.getProducts(0, 0));
-  const pagination = usePagination(LIMIT, totalItems.length, 3);
-  const products = useFetch(endpoints.products.getProducts(LIMIT, productOffset));
-
+const Products = () => {
+  /*  const [offsetProducts, setOffsetProducts] = useState(0); */
+  /* const products = useFetch(endPoints.products.getProducts(LIMIT, offsetProducts), offsetProducts);
+  const totalProducts = useFetch(endPoints.products.getProducts(0, 0)).length; */
   const [open, setOpen] = useState(false);
 
-  const handlePagination = (event) => {
-    event.preventDefault();
-    let current = event.target.getAttribute('data-page');
-    if (current == null) {
-      current = event.target.parentNode.getAttribute('data-page');
-      if (current == null) {
-        current = event.target.parentNode.parentNode.getAttribute('data-page');
-      }
+  const [products, setProducts] = useState([]);
+  const { alert, setAlert, toggleAlert } = useAlert();
+
+  useEffect(() => {
+    async function getProductsPagination() {
+      const response = await axios.get(endPoints.products.getAllProducts);
+      setProducts(response.data);
     }
-    pagination.setCurrentPage(Number(current));
-    setProductOffset((Number(current) - 1) * PRODUCT_LIMIT);
+
+    try {
+      getProductsPagination();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [alert]);
+
+  const handleClose = (id) => {
+    deleteProduct(id).then(() => {
+      setAlert({
+        active: true,
+        message: 'Delete',
+        type: 'error',
+        autoClose: true,
+      });
+    });
   };
+
   return (
     <>
-      <div className="lg:flex lg:items-center lg:justify-between mb-8">
+      <Alert alert={alert} handleClose={toggleAlert} />
+      <div className="lg:flex lg:items-center lg:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">List of products</h2>
         </div>
@@ -55,12 +65,9 @@ export default function Products() {
           </span>
         </div>
       </div>
-
       <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-            {products.length > 0 ? <Paginator pagination={pagination} handleClick={handlePagination} /> : null}
-
             <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -75,7 +82,7 @@ export default function Products() {
                       Price
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Id
+                      ID
                     </th>
                     <th scope="col" className="relative px-6 py-3">
                       <span className="sr-only">Edit</span>
@@ -86,7 +93,7 @@ export default function Products() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
+                  {products?.map((product) => (
                     <tr key={`Product-item-${product.id}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -102,31 +109,32 @@ export default function Products() {
                         <div className="text-sm text-gray-900">{product.category.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">$ {product.price}</span>
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">${product.price}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" className="text-indigo-600 hover:text-indigo-900">
+                        <Link href={`/dashboard/edit/${product.id}`} className="text-indigo-600 hover:text-indigo-900">
                           Edit
-                        </a>
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                          Delete
-                        </a>
+                        <XCircleIcon className="flex-shrink-0 h-6 w-6 text-gray-400 cursor-pointer" aria-hidden="true" onClick={() => handleClose(product.id)} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {products.length > 0 ? <Paginator pagination={pagination} handleClick={handlePagination} /> : null}
+            {/*{totalProducts > 0 && <Pagination totalItems={totalProducts} itemsPerPage={LIMIT} setOffset={setOffsetProducts} neighbours={3}></Pagination>}
+             */}
           </div>
         </div>
       </div>
       <Modal open={open} setOpen={setOpen}>
-        <h1>Hola mundo</h1>
+        <FormProduct setOpen={setOpen} setAlert={setAlert} />
       </Modal>
     </>
   );
-}
+};
+
+export default Products;
